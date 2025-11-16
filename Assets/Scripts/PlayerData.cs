@@ -4,17 +4,19 @@ using System.Collections.Generic;
 public class PlayerData : MonoBehaviour
 {
     public float money = 100f; // Starting money
-    public float totalHashrate = 0f;
     
     private List<GPU> ownedGPUs = new List<GPU>();
     private List<MiningSlot> miningSlots = new List<MiningSlot>();
     private int unlockedSlots = 1;
     private float slotCost = 1000f;
     
-    private void Start()
+    public void Initialize()
     {
         // Initialize first slot
-        miningSlots.Add(new MiningSlot());
+        if (miningSlots.Count == 0)
+        {
+            miningSlots.Add(new MiningSlot());
+        }
     }
     
     public float GetTotalHashrate()
@@ -22,7 +24,7 @@ public class PlayerData : MonoBehaviour
         float total = 0f;
         foreach (var slot in miningSlots)
         {
-            if (slot.gpu != null)
+            if (slot != null && slot.gpu != null)
             {
                 total += slot.gpu.hashrate;
             }
@@ -32,7 +34,7 @@ public class PlayerData : MonoBehaviour
     
     public void AddMoney(float amount)
     {
-        money += amount;
+        money += Mathf.Max(0, amount);
     }
     
     public bool BuyGPU(int gpuIndex)
@@ -41,7 +43,14 @@ public class PlayerData : MonoBehaviour
         if (gpu != null && money >= gpu.cost)
         {
             money -= gpu.cost;
-            ownedGPUs.Add(gpu);
+            GPU newGPU = new GPU
+            {
+                name = gpu.name,
+                hashrate = gpu.hashrate,
+                cost = gpu.cost,
+                powerUsage = gpu.powerUsage
+            };
+            ownedGPUs.Add(newGPU);
             return true;
         }
         return false;
@@ -62,7 +71,7 @@ public class PlayerData : MonoBehaviour
     
     public bool InstallGPU(int slotIndex, int gpuIndex)
     {
-        if (slotIndex < miningSlots.Count && gpuIndex < ownedGPUs.Count)
+        if (slotIndex >= 0 && slotIndex < miningSlots.Count && gpuIndex >= 0 && gpuIndex < ownedGPUs.Count)
         {
             miningSlots[slotIndex].gpu = ownedGPUs[gpuIndex];
             return true;
@@ -74,17 +83,23 @@ public class PlayerData : MonoBehaviour
     {
         GPU[] gpuDatabase = new GPU[]
         {
-            new GPU { name = "GTX 1060", hashrate = 25f, cost = 50f },
-            new GPU { name = "RTX 2080", hashrate = 100f, cost = 300f },
-            new GPU { name = "RTX 3090", hashrate = 150f, cost = 800f },
-            new GPU { name = "RTX 4090", hashrate = 250f, cost = 1600f },
+            new GPU { name = "GTX 1060", hashrate = 25f, cost = 50f, powerUsage = 120f },
+            new GPU { name = "RTX 2080", hashrate = 100f, cost = 300f, powerUsage = 250f },
+            new GPU { name = "RTX 3090", hashrate = 150f, cost = 800f, powerUsage = 350f },
+            new GPU { name = "RTX 4090", hashrate = 250f, cost = 1600f, powerUsage = 450f },
         };
         
-        return index >= 0 && index < gpuDatabase.Length ? gpuDatabase[index] : null;
+        if (index >= 0 && index < gpuDatabase.Length)
+        {
+            return gpuDatabase[index];
+        }
+        return null;
     }
     
     public int GetUnlockedSlots() => unlockedSlots;
     public int GetTotalSlots() => miningSlots.Count;
+    public List<MiningSlot> GetMiningSlots() => miningSlots;
+    public List<GPU> GetOwnedGPUs() => ownedGPUs;
 }
 
 public class GPU
