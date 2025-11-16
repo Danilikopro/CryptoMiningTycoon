@@ -3,14 +3,16 @@ using UnityEngine;
 public class CryptoMarket : MonoBehaviour
 {
     private float bitcoinPrice = 45000f; // Starting price
-    private float priceChangeSpeed = 100f; // How much price fluctuates per second
+    private float priceChangeSpeed = 100f; // How much price fluctuates per update
     private float timeUntilPriceChange = 0f;
-    private float priceChangeInterval = 5f; // Change price every 5 seconds
+    private const float PRICE_CHANGE_INTERVAL = 5f; // Change price every 5 seconds
+    private const float MIN_PRICE = 1000f;
+    private const float MAX_PRICE = 100000f;
     
     private void Update()
     {
         timeUntilPriceChange += Time.deltaTime;
-        if (timeUntilPriceChange >= priceChangeInterval)
+        if (timeUntilPriceChange >= PRICE_CHANGE_INTERVAL)
         {
             RandomizePriceChange();
             timeUntilPriceChange = 0f;
@@ -21,7 +23,9 @@ public class CryptoMarket : MonoBehaviour
     {
         float randomChange = Random.Range(-priceChangeSpeed, priceChangeSpeed);
         bitcoinPrice += randomChange;
-        bitcoinPrice = Mathf.Max(bitcoinPrice, 1000f); // Minimum price
+        
+        // Clamp price within min/max range
+        bitcoinPrice = Mathf.Clamp(bitcoinPrice, MIN_PRICE, MAX_PRICE);
     }
     
     public float GetCurrentCryptoPrice()
@@ -31,6 +35,9 @@ public class CryptoMarket : MonoBehaviour
     
     public void SetCryptoPrice(float newPrice)
     {
-        bitcoinPrice = Mathf.Max(newPrice, 1000f);
+        bitcoinPrice = Mathf.Clamp(newPrice, MIN_PRICE, MAX_PRICE);
     }
+    
+    public float GetPriceChangeSpeed() => priceChangeSpeed;
+    public void SetPriceChangeSpeed(float newSpeed) => priceChangeSpeed = Mathf.Max(0, newSpeed);
 }
